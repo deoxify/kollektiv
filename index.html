@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>KOLEKTİVNÜMMER</title>
+    <style type="text/css">
+      * {
+        color: #ccc;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background-color: #333;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        height: 100vh;
+      }
+      #input {
+        display: none;
+      }
+      textarea {
+        background-color: #111;
+        font-size: large;
+      }
+      textarea:disabled {
+        color: gray;
+      }
+      #download {
+        display: none;
+        font-size: 10vh;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <input id="file-picker" type="file" />
+    <br />
+    <textarea id="output" cols="70" rows="32" disabled="true"></textarea>
+    <br />
+    <a id="download">DAWLIT</a>
+    <script defer>
+      const germanMonths = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+      const filePicker = document.getElementById("file-picker");
+      const outputField = document.getElementById("output");
+
+      function convert(input) {
+        const data = [];
+
+        input = input.replace(/^\*\s*/gm, "");
+        const sections = input
+          .replace(/[^\S\r\n]+/gm, ",")
+          .trim()
+          .split(/^\r\n+/gm);
+
+        const date = new Date();
+        const dateOptions = { hour: "numeric", minute: "numeric", second: "numeric", hour12: true };
+        const dateString = `${
+          germanMonths[date.getMonth()]
+        } ${date.getDate()}, ${date.getFullYear()} ${date.toLocaleTimeString(
+          "de-DE",
+          dateOptions
+        )}`;
+
+        for (let i = 1; i <= sections.length; i += 2) {
+          const header = sections[i - 1].trim().split(/\r\n/gm);
+          const headerObj = {};
+          header.forEach((property) => {
+            const splittedInfo = property.split(",");
+            headerObj[splittedInfo[0]] = splittedInfo[1];
+          });
+
+          const rawMatrices = sections[i].trim().split(/\r\n/gm);
+          const matrices = [];
+
+          rawMatrices.forEach((matrix) => {
+            matrices.push(matrix.split(",").slice(1).reverse());
+          });
+
+          data.push({ header: headerObj, matrices: matrices });
+        }
+
+        data.sort((a, b) => a.header["Kollektivnummer"] - b.header["Kollektivnummer"]);
+
+        const testnummer = data[0].header["Testnummer"];
+        const kanal_1 = data[0].header["Kanal_1"];
+
+        let output = "";
+
+        for (let kollektiv = 1; kollektiv <= data.length; ++kollektiv) {
+          let section = "";
+
+          section = `A kollibm jBEAM Auswertung erstellt am ${dateString} \n`;
+          section += "C PSNR GW01 \n";
+          section += `C TESTNR ${testnummer} \n`;
+          section += "C PROGNR - \n";
+          section += "C PRUEFL ----------- \n";
+          section += "C MSIDS 2 \n";
+          section += "C ANZ-PAR 3 \n";
+          section += "C KOLL-NR \n";
+          section += "C GANG-NR \n";
+          section += "C ANZ. DL \n";
+          section += "C n_PsA0 U/min \n";
+          const kanal_1 = data[kollektiv - 1].header["Kanal_1"];
+          const dimension_1 = data[kollektiv - 1].header["Dimension_1"];
+          section += ["C", kanal_1, dimension_1].join(" ") + " \n";
+
+          data[kollektiv - 1].matrices.forEach((matrix) => {
+            const roundedVal = (Math.round(parseFloat(matrix[0]) * 10) / 10).toFixed(1);
+            section += `D    ${kollektiv}    1${" ".repeat(10)}0`;
+            section += `${" ".repeat(16 - roundedVal.length)}${roundedVal}`;
+            section += `${" ".repeat(16 - matrix[1].length)}${matrix[1]} \n`;
+          });
+
+          output += section;
+        }
+
+        output = output.trim() + " \n";
+
+        outputField.value = output;
+
+        const link = document.querySelector("#download");
+        link.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(output));
+        link.setAttribute("download", `${testnummer}.txt`);
+        link.style.display = "inline";
+        link.disabled = false;
+      }
+
+      filePicker.addEventListener("change", function () {
+        let file = this.files[0];
+        let reader = new FileReader();
+
+        reader.readAsText(file, "windows-1254");
+
+        reader.onload = function () {
+          convert(reader.result);
+          outputField.disabled = false;
+        };
+
+        reader.onerror = function () {
+          console.error(reader.error);
+        };
+      });
+    </script>
+  </body>
+</html>
