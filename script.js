@@ -1,5 +1,5 @@
 document.getElementById("version").innerText = "v0.3";
-const months = "Jan|Feb|Mär|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Dez".split("|");
+const months = "Jan|Feb|MÃ¤r|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Dez".split("|");
 const filePicker = document.getElementById("file-picker");
 const outputField = document.getElementById("output");
 const downloadLink = document.getElementById("download");
@@ -10,7 +10,7 @@ function convert(input) {
   input = input.replace(/^\*\s*/gm, "");
   const sections = input.replace(/[^\S\r\n]+/gm, ",").trim().split(/^\r\n+/gm);
   const date = new Date();
-  const dateString = `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()} ${date.toLocaleTimeString("en-US", { hour: "numeric", minute: "numeric", second: "numeric", hour12: true })}`;
+  const dateString = `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()} ${date.toLocaleTimeString("de-DE", { hour: "numeric", minute: "numeric", second: "numeric", hour12: true })}`;
 
   for (let i = 1; i <= sections.length; i += 2) {
     const header = sections[i - 1].trim().split(/\r\n/gm).reduce((acc, prop) => { const [key, value] = prop.split(","); acc[key] = value; return acc }, {});
@@ -51,8 +51,7 @@ function convert(input) {
     output += section;
   }
 
-  output = output.trim() + " \n";
-  outputField.value = output;
+  output = outputField.value = output.trim() + " \n";
 
   downloadLink.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(output));
   downloadLink.setAttribute("download", `${testnummer}.txt`);
@@ -60,7 +59,6 @@ function convert(input) {
 }
 
 filePicker.onchange = function () {
-  outputField.value = "";
   let file = this.files[0];
   let reader = new FileReader();
   reader.readAsText(file, "windows-1254");
