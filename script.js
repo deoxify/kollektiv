@@ -43,7 +43,7 @@ function convert(input) {
 
     data[kollektiv - 1].matrices.forEach((matrix) => {
       const roundedVal = (Math.round(parseFloat(matrix[0]) * 10) / 10).toFixed(1);
-      section += `D    ${kollektiv}    1${" ".repeat(10)}0`;
+      section += `D    ${kollektiv}    1          0`;
       section += `${" ".repeat(16 - roundedVal.length)}${roundedVal}`;
       section += `${" ".repeat(16 - matrix[1].length)}${matrix[1]} \n`;
     });
